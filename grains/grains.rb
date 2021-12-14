@@ -1,7 +1,15 @@
-=begin
-Write your code for the 'Grains' exercise in this file. Make the tests in
-`grains_test.rb` pass.
+# constant time solutions
+class Grains
+  VALID_SQUARES = 1..64
+  private_constant :VALID_SQUARES
 
-To get started with TDD, see the `README.md` file in your
-`ruby/grains` directory.
-=end
+  def self.square(n)
+    raise ArgumentError, "must be in range 1 .. 64" unless VALID_SQUARES.cover?(n)
+
+    2 ** (n-1)
+  end
+
+  def self.total
+    2 ** VALID_SQUARES.max - 1
+  end
+end
