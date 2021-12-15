@@ -9,7 +9,7 @@ class BaseConverter
     assert_valid_digits!(digits, input_base)
 
     value = to_base10(digits, base: input_base)
-    to(value, base: output_base)
+    covert(value, to_base: output_base)
   end
 
   private
@@ -18,13 +18,13 @@ class BaseConverter
     digits.reverse.map.with_index {|digit, i| digit * (base ** i) }.sum
   end
 
-  def to(value, base:)
+  def covert(value, to_base:)
     digits = []
     loop do
-      remainder = value % base
+      remainder = value % to_base
 
       digits.unshift(remainder)
-      value /= base
+      value /= to_base
       break if value.zero?
     end
     digits
