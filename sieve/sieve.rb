@@ -6,35 +6,47 @@ class Sieve
   end
 
   def primes
-    @sieve = start_sieve
+    self.sieve = start_sieve
     i = 1
 
-    while i <= maximum
+    while i < maximum
       i = next_prime(i)
       break unless i
 
       mark_multiples_of(i)
     end
-    sieve.compact
+    unmarked
   ensure
-    @sieve = nil
+    self.sieve = nil
   end
 
   private
 
-  attr_reader :maximum, :sieve
+  attr_reader :maximum
+  attr_accessor :sieve
+
+  # everything non-nil
+  def unmarked
+    sieve.compact
+  end
 
   def next_prime(i)
-    ((i + 1)..maximum).find { |el| !sieve[el].nil? }
+    ((i + 1)...maximum).find { |el| unmarked?(el) }
   end
 
   def mark_multiples_of(multiple)
     # skip the multiple itself
     # ie, 2 is prime, 4, 6, 8 are not
     start = multiple + multiple
-    (start..maximum).step(multiple) do |p|
-      sieve[p] = nil
-    end
+    (start..maximum).step(multiple, &method(:mark!))
+  end
+
+  def mark!(p)
+    sieve[p] = nil
+  end
+
+  def unmarked?(p)
+    !sieve[p].nil?
   end
 
   def start_sieve
