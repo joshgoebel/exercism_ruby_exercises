@@ -1,25 +1,42 @@
 class BaseConverter
-  def self.convert(input_base, digits, output_base)
-    raise ArgumentError if input_base < 2
-    raise ArgumentError if output_base < 2
-    raise ArgumentError if digits.any?(&:negative?)
-    raise ArgumentError if digits.any? {|d| d >= input_base }
+  def self.convert(*args)
+    BaseConverter.new.convert(*args)
+  end
 
-    value = to_base_10(digits, from: input_base)
+  def convert(input_base, digits, output_base)
+    assert_valid_base!(input_base)
+    assert_valid_base!(output_base)
+    assert_valid_digits!(digits, input_base)
+
+    value = to_base10(digits, base: input_base)
     to(value, base: output_base)
   end
-  def self.to_base_10(digits, from:)
-    base = from
+
+  private
+
+  def to_base10(digits, base:)
     digits.reverse.map.with_index {|digit, i| digit * (base ** i) }.sum
   end
-  def self.to(value, base:)
+
+  def to(value, base:)
     digits = []
-    while value > 0
+    loop do
       remainder = value % base
 
-      digits << remainder
+      digits.unshift(remainder)
       value /= base
+      break if value.zero?
     end
-    digits.empty? ? [0] : digits.reverse
+    digits
   end
+
+  def assert_valid_base!(base)
+    raise ArgumentError, "#{base} is not a valid base" if base < 2
+  end
+
+  def assert_valid_digits!(digits, input_base)
+    raise ArgumentError if digits.any?(&:negative?)
+    raise ArgumentError if digits.any? { |d| d >= input_base }
+  end
+
 end
