@@ -9,9 +9,12 @@ class Series
     raise ArgumentError if size > @digits.length
     return 1 if @digits.length.zero? || size.zero?
 
-    @digits.each_char.map(&:to_i).each_cons(size).map do |list|
-      list.inject(1) { |acc, n| acc * n }
-    end.max
+    @digits
+      .each_char
+      .map(&:to_i)
+      .each_cons(size)
+      .map { |list| list.inject(&:*) }
+      .max
   end
 
   private
