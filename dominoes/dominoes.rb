@@ -1,45 +1,79 @@
+class Domino
+  def initialize(piece)
+    @domino = piece
+  end
+
+  def can_chain?(other)
+    @domino.any? { |d| other.match?(d) }
+  end
+
+  def match?(d)
+    @domino.include?(d)
+  end
+
+  def left
+    @domino[0]
+  end
+
+  def right
+    @domino[1]
+  end
+
+  def reverse!
+    @domino.reverse!
+    self
+  end
+end
+
+module Without
+  refine Array do
+    def without(el)
+      drop_index = self.index(el)
+      self.reject.with_index {|_,i| i == drop_index }
+    end
+  end
+end
+
 class Dominoes
+  using Without
   def self.chain?(dominoes)
     Dominoes.new(dominoes).chain?
   end
-  def initialize(pieces)
-    @pieces = pieces
+
+  def initialize(dominoes)
+    @dominoes = dominoes
   end
 
   def chain?
-    return true if @pieces.size == 0
+    return true if @dominoes.size == 0
 
-    first, *rest = @pieces
-    # pieces = @pieces[1..-1]
+    first, *rest = @dominoes.map {|x| Domino.new(x) }
     _chain(rest, [first]) ||
-    _chain(rest, [first.reverse])
+    _chain(rest, [first.reverse!])
   end
 
   private
 
   def connects_itself?(chain)
-    chain.first[0] == chain.last[1]
+    chain.first.left == chain.last.right
   end
 
   def _chain(unused, chain)
     return true if unused.empty? && connects_itself?(chain)
 
-    available = unused.select {|d| d.include? chain.last[1] }
-    available.find do |d|
-      drop_index = unused.index(d)
-      new_unused = unused.reject.with_index {|d,i| i == drop_index }
-      new_chain = add_chain(chain, d)
+    available = unused.select {|d| d.match? chain.last.right }
+    available.find do |dominoe|
       # puts "new_unused: #{new_unused}"
       # puts "new_chain: #{new_chain}"
-      _chain(new_unused, new_chain)
+      _chain(
+        unused.without(dominoe),
+        chain_add_dominoe(chain, dominoe)
+      )
     end
   end
 
-  def add_chain(chain, domino)
-    if chain.last[1] == domino[0]
-      [*chain, domino]
-    else
-      [*chain, domino.reverse]
-    end
+  def chain_add_dominoe(chain, domino)
+    domino.reverse! if chain.last.right != domino.left
+    [*chain, domino]
   end
 end
