@@ -71,7 +71,7 @@ class DominoesTest < Minitest::Test
 
   def test_nine_elements
     # skip
-    dominoes = [[1, 2], [5, 3], [3, 1], [1, 2], [2, 4], [1, 6], [2, 3], [3, 4], [5, 6]]
+    dominoes = [[1, 2], [5, 3], [3, 1], [1, 2], [2, 4], [1, 6], [2, 3], [3, 4], [5, 6]]*50
     assert Dominoes.chain?(dominoes)
   end
 end
