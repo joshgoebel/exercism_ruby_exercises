@@ -1,28 +1,29 @@
 class Domino
-  attr_reader :digits
+  attr_reader :ends
 
-  def initialize(piece)
-    @digits = piece
+  def initialize(ends)
+    raise ArgumentError unless ends.size == 2
+    @ends = ends
   end
 
   def can_chain?(other)
-    digits.any? { |d| other.matches?(d) }
+    ends.any? { |pips| other.matches?(pips) }
   end
 
-  def matches?(d)
-    digits.include?(d)
+  def matches?(pips)
+    ends.include?(pips)
   end
 
   def left
-    digits.first
+    ends.first
   end
 
   def right
-    digits.last
+    ends.last
   end
 
   def reverse
-    Domino.new(digits.reverse)
+    Domino.new(ends.reverse)
   end
 end
 
@@ -41,41 +42,46 @@ class Dominoes
     Dominoes.new(dominoes).chain?
   end
 
-  def initialize(dominoes)
-    @dominoes = dominoes
-  end
-
   def chain?
     @i = 0
-    return true if @dominoes.size.zero?
+    return true if @raw_dominoes.size.zero?
 
-    first, *rest = @dominoes.map { |x| Domino.new(x) }
-    r = _chain(rest, [first]) || _chain(rest, [first.reverse])
-    puts("iterations: #{@i}")
-    r
+    @dominoes = @raw_dominoes.map { |x| Domino.new(x) }
+    first, *rest = @dominoes
+    _chain(rest, [first]).tap do
+      puts("iterations: #{@i}")
+    end
   end
 
   private
 
-  def connects_itself?(chain)
+  def initialize(raw_dominoes)
+    @raw_dominoes = raw_dominoes
+  end
+
+  def both_ends_chain_connect?(chain)
     chain.first.left == chain.last.right
+  end
+
+  def count
+    @dominoes.size
   end
 
   def _chain(unused, chain)
     @i += 1
-    return true if unused.empty? && connects_itself?(chain)
+    return true if unused.empty? && both_ends_chain_connect?(chain)
 
     unused
-      .select { |dominoe| dominoe.matches? chain.last.right }
-      .find do |dominoe|
+      .select { |domino| domino.matches? chain.last.right }
+      .find do |domino|
         _chain(
-          unused.without(dominoe),
-          chain_add_dominoe(chain, dominoe)
+          unused.without(domino),
+          chain_add_domino(chain, domino)
         )
       end
   end
 
-  def chain_add_dominoe(chain, domino)
+  def chain_add_domino(chain, domino)
     if chain.last.right != domino.left
       [*chain, domino.reverse]
     else
